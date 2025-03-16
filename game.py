@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import List
+from typing import List, Dict, Any
 from card import Card, Deck
 from player import Player, PlayerAction, PlayerStatus
 from hand_evaluator import HandEvaluator
+from game_action import ActionHistory, record_action, get_game_state
 
 
 class GamePhase(Enum):
@@ -27,9 +28,17 @@ class PokerGame:
         self.active_player_index = 0
         self.min_raise = big_blind
         self.has_played = [False] * len(self.players)
+        
+        # Add tracking variables
+        self.hand_number = 0
+        self.action_count = 0
+        self.action_history = ActionHistory()
 
     def start_new_hand(self):
         print("\n====== NEW HAND ======")
+
+        self.hand_number += 1
+        
         # Reset game state
         self.deck = Deck()
         self.community_cards = []
@@ -37,6 +46,10 @@ class PokerGame:
         self.current_bet = 0
         self.phase = GamePhase.SETUP
         self.min_raise = self.big_blind
+        
+        # Reset action tracking for new hand
+        self.action_count = 0
+        self.action_history.clear()
 
         # Reset player statuses
         for i, player in enumerate(self.players):
@@ -118,6 +131,11 @@ class PokerGame:
             # Update current bet
             self.current_bet = amount
 
+        # Record action before executing it
+        self.action_count += 1
+        action_record = record_action(self, self.active_player_index, action, amount)
+        self.action_history.add_action(action_record)
+        
         # Execute action
         print(f"{player.name} {action.value}s", end="")
         if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
@@ -127,6 +145,12 @@ class PokerGame:
 
         actual_action, actual_amount = player.take_action(action, amount)
         self.pot += actual_amount
+
+        # If the actual action is different (e.g., became ALL_IN), record that too
+        if actual_action != action:
+            self.action_count += 1
+            adjusted_record = record_action(self, self.active_player_index, actual_action, actual_amount)
+            self.action_history.add_action(adjusted_record)
 
         # Move to next player
         self.has_played[self.active_player_index] = True
@@ -248,3 +272,7 @@ class PokerGame:
 
     def _reset_has_played(self):
         self.has_played = [False if player.status == PlayerStatus.ACTIVE else True for player in self.players]
+
+    def get_current_state(self) -> Dict[str, Any]:
+        """Return the current game state"""
+        return get_game_state(self)
