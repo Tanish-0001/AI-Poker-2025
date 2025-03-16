@@ -7,7 +7,11 @@ def get_player_input(game: PokerGame) -> bool:
     
     if player.status != PlayerStatus.ACTIVE:
         return True
-    
+
+    if game.num_active_players() <= 1:
+        game.advance_game_phase()
+        return True
+
     print(f"\n{player.name}'s turn")
     print(f"Your cards: {[str(c) for c in player.hole_cards]}")
     

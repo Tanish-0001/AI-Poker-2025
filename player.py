@@ -24,6 +24,7 @@ class PlayerStatus(Enum):
 class Player:
     name: str
     stack: int
+    uuid: int = 0
     status: PlayerStatus = PlayerStatus.ACTIVE
     hole_cards: List[Card] = None
     bet_amount: int = 0
@@ -53,7 +54,7 @@ class Player:
             self.stack -= max_bet
             self.bet_amount += max_bet
             
-            # Check if player is all-in
+            # Check if player_hand is all-in
             if self.stack == 0:
                 self.status = PlayerStatus.ALL_IN
                 return PlayerAction.ALL_IN, max_bet
@@ -61,3 +62,6 @@ class Player:
             return action, max_bet
         
         return action, 0
+
+    def action(self, game_state: list[int], action_history: list) -> Tuple[PlayerAction, int]:
+        pass
