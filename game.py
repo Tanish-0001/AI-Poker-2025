@@ -98,15 +98,12 @@ class PokerGame:
             amount = self.current_bet - player.bet_amount
 
         if action in [PlayerAction.BET, PlayerAction.RAISE]:
-            # For a bet, the minimum is the big blind
-            min_amount = self.big_blind
-
-            # For a raise, the minimum is the current bet plus the minimum raise amount
-            if self.current_bet > 0:
-                min_amount = self.current_bet + self.min_raise
-                action = PlayerAction.RAISE
-            else:
+            if self.current_bet == 0:
+                min_amount = 1  
                 action = PlayerAction.BET
+            else:
+                min_amount = self.current_bet
+                action = PlayerAction.RAISE
 
             if amount < min_amount:
                 print(f"Minimum {action.value} is {min_amount}")
@@ -149,9 +146,12 @@ class PokerGame:
         if len([p for p in active_players if p.status == PlayerStatus.ACTIVE]) <= 1:
             return True
 
-        # Check if all active players have matched the current bet
-        return (all(self.has_played) and
-                all(p.bet_amount == self.current_bet or p.status != PlayerStatus.ACTIVE for p in active_players))
+        # If every active player has had a chance to act at least once
+        if all(p.bet_amount == self.current_bet or p.status != PlayerStatus.ACTIVE for p in active_players):
+            if self.active_player_index == (self.button_position + 1) % len(self.players):
+                return True
+        
+        return False
 
     def _advance_game_phase(self):
         # Reset bet amounts for the next betting round
