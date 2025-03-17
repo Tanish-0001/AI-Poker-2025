@@ -33,6 +33,9 @@ class Card:
     suit: Suit
 
     def get_index(self) -> int:
+        """
+        Returns the index of the card rank. Indexing starts from 1.
+        """
         return (self.suit.value * 13) + self.rank.value - 1
     
     def __str__(self) -> str:
@@ -56,4 +59,7 @@ class Deck:
         random.shuffle(self.cards)
     
     def deal(self, num_cards: int = 1) -> List[Card]:
+        """
+        Deals num_cards cards from the deck, and discards them.
+        """
         return [self.cards.pop() for _ in range(min(num_cards, len(self.cards)))]

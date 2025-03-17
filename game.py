@@ -263,10 +263,36 @@ class PokerGame:
         self.player_action(action, amount)
 
     def get_game_state(self) -> list[int]:
+        """
+        Returns the current game state in the following structure:
+        <1. Hole Cards' Index>
+        card1
+        card2
+        <2. Community Cards' Index. 0 means not yet dealt>
+        card1
+        card2
+        card3
+        card4
+        card5
+        <3. Pot>
+        pot
+        <4. Current Raise Amount>
+        current_raise
+        <5. Each player's stack>
+        stack1
+        stack2
+        stack3
+        stack4
+        <6. Blind>
+        blind
+        <7. Game number>
+        game_number
+        """
         player = self.players[self.active_player_index]
+        community_cards = [card.get_index() for card in self.community_cards] + (5 - len(self.community_cards)) * [0]
         return [
             *(card.get_index() for card in player.hole_cards),
-            *(card.get_index() for card in self.community_cards),
+            *community_cards,
             self.pot,
             self.current_bet,
             *(p.stack for p in self.players),
@@ -276,4 +302,13 @@ class PokerGame:
 
 
 if __name__ == "__main__":
-    pass
+    example_players = [
+        Player("Alice", 1000),
+        Player("Bob", 1000),
+        Player("Charlie", 1000),
+        Player("Dave", 1000),
+    ]
+    game = PokerGame(example_players, big_blind=20)
+    game.start_new_hand()
+    game.advance_game_phase()
+    print(game.get_game_state())
