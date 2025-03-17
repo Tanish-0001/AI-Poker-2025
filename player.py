@@ -60,8 +60,15 @@ class Player:
                 return PlayerAction.ALL_IN, max_bet
             
             return action, max_bet
+
+        if action == PlayerAction.ALL_IN:
+            actual = self.stack
+            self.bet_amount += self.stack
+            self.stack = 0
+            self.status = PlayerStatus.ALL_IN
+            return PlayerAction.ALL_IN, actual
         
         return action, 0
 
     def action(self, game_state: list[int], action_history: list) -> Tuple[PlayerAction, int]:
-        pass
+        return PlayerAction.FOLD, 0

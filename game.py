@@ -120,6 +120,12 @@ class PokerGame:
             # Update current bet
             self.current_bet = amount
 
+        if action == PlayerAction.ALL_IN:
+            if amount <= 0 or player.bet_amount <= 0:
+                return False
+            if player.bet_amount > self.current_bet:
+                self.current_bet = player.bet_amount
+
         # Execute action
         print(f"{player.name} {action.value}s", end="")
         if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
@@ -256,11 +262,11 @@ class PokerGame:
     def num_active_players(self) -> int:
         return len([p for p in self.players if p.status == PlayerStatus.ACTIVE])
 
-    def get_player_input(self) -> None:
+    def get_player_input(self) -> bool:
         player = self.players[self.active_player_index]
         game_state = self.get_game_state()
         action, amount = player.action(game_state, self.action_history)
-        self.player_action(action, amount)
+        return self.player_action(action, amount)
 
     def get_game_state(self) -> list[int]:
         """
