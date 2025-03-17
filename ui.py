@@ -7,11 +7,7 @@ def get_player_input(game: PokerGame) -> bool:
     
     if player.status != PlayerStatus.ACTIVE:
         return True
-
-    if game.num_active_players() <= 1:
-        game.advance_game_phase()
-        return True
-
+    
     print(f"\n{player.name}'s turn")
     print(f"Your cards: {[str(c) for c in player.hole_cards]}")
     
@@ -43,7 +39,7 @@ def get_player_input(game: PokerGame) -> bool:
             elif action_input == "2":
                 return game.player_action(PlayerAction.CALL)
             elif action_input == "3":
-                amount = int(input(f"Enter total raise amount (min {game.current_bet + game.min_raise}): "))
+                amount = int(input(f"Enter total raise amount: "))
                 return game.player_action(PlayerAction.RAISE, amount)
     except ValueError:
         print("Invalid input")
