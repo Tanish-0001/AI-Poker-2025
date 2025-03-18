@@ -29,7 +29,7 @@ def run_demo_game():
 
             print(f"\n{player.name}'s turn")
             print(f"Your cards: {[str(c) for c in player.hole_cards]}")
-
+            
             is_successful = game.get_player_input()
 
             if not is_successful:
