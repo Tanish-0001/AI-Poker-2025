@@ -284,23 +284,27 @@ class PokerGame:
         pot
         <4. Current Raise Amount>
         current_raise
-        <5. Each player's stack>
+        <5. Number of players>
+        num_players
+        <6. Each player's stack>
         stack1
         stack2
         stack3
         stack4
-        <6. Blind>
+        <7. Blind>
         blind
-        <7. Game number>
+        <8. Game number>
         game_number
         """
         player = self.players[self.active_player_index]
+        player_cards = [card.get_index() for card in player.hole_cards] + (2 - len(player.hole_cards)) * [0]
         community_cards = [card.get_index() for card in self.community_cards] + (5 - len(self.community_cards)) * [0]
         return [
-            *(card.get_index() for card in player.hole_cards),
+            *player_cards,
             *community_cards,
             self.pot,
             self.current_bet,
+            len(self.players),
             *(p.stack for p in self.players),
             self.big_blind,
             self.game_number,
