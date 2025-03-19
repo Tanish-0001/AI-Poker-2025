@@ -1,7 +1,7 @@
 from player import Player, PlayerStatus
 from game import PokerGame, GamePhase
 from ui import get_player_input
-from baseplayers import FoldPlayer, RaisePlayer
+from baseplayers import *
 
 
 def run_demo_game():
@@ -11,6 +11,7 @@ def run_demo_game():
         RaisePlayer("Bob", 1000),
         FoldPlayer("Charlie", 1000),
         RaisePlayer("David", 1000),
+        InputPlayer("Eve", 1000),
     ]
     
     # Create game
