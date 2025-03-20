@@ -445,7 +445,7 @@ class PokerGame:
             return False
 
         if action == PlayerAction.CALL:
-            call_amount = self.current_bet - player.bet_amount
+            call_amount = self.current_bet - player.bet_amount -1
         
             # Can't call more than you have
             amount = min(call_amount, player.stack)
@@ -460,7 +460,7 @@ class PokerGame:
 
         if action in [PlayerAction.BET, PlayerAction.RAISE]:
             # For a bet, the minimum is the big blind
-            min_amount = self.big_blind if self.current_bet == 0 else self.current_bet + self.min_raise
+            min_amount = self.big_blind if self.current_bet == 0 else self.current_bet + self.min_raise +1
 
             # Check if we're raising or betting
             if self.current_bet > 0:
