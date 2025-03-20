@@ -21,7 +21,7 @@ class PokerGame:
         self.deck = None
         self.community_cards = []
         self.pot = 0
-        self.current_bet = 0
+        self.current_bet = 0  # how much has been raised (includes big blind)
         self.phase = GamePhase.SETUP
         self.button_position = 0
         self.active_player_index = 0
@@ -97,7 +97,7 @@ class PokerGame:
             return False
 
         if action == PlayerAction.CALL:
-            amount = self.current_bet - player.bet_amount
+            amount = self.current_bet
 
         if action in [PlayerAction.BET, PlayerAction.RAISE]:
             # For a bet, the minimum is the big blind

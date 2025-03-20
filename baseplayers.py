@@ -6,6 +6,21 @@ import random
 import treys as tr
 from treys import Evaluator
 from collections import deque
+import os
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain.prompts import ChatPromptTemplate
+from operator import itemgetter
+
+
+os.environ['LANGCHAIN_TRACING_V2'] = 'false'
+os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
+os.environ['LANGCHAIN_API_KEY'] = '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'
+os.environ['GOOGLE_API_KEY'] = 'AIzaSyAuco9jT-DXRpYWYFJpMuezyfhUZCJfips'
 
 
 class FoldPlayer(Player):
@@ -54,6 +69,8 @@ class InputPlayer(Player):
                 elif action_input == "3":
                     amount = int(input(f"Enter total raise amount: "))
                     return PlayerAction.RAISE, amount
+                else:
+                    return PlayerAction.FOLD, 0
         except ValueError:
             print("Invalid input")
             return PlayerAction.FOLD, 0
@@ -176,3 +193,66 @@ class NewPlayer(Player):
                 game_state[6] == 0):
             return self.make_preflop_dec(game_state)
         return self.make_postflop_dec(game_state)
+
+
+class LLMPlayer(Player):
+
+    def __init__(self, name, amount):
+        super(self, LLMPlayer).__init__()
+        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+        template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
+        structured as follows.
+        <1. Hole Cards' Index>
+        card1
+        card2
+        <2. Community Cards' Index. 0 means not yet dealt>
+        card1
+        card2
+        card3
+        card4
+        card5
+        <3. Pot>
+        pot
+        <4. Current Raise Amount>
+        current_raise
+        <5. Number of players>
+        num_players
+        <6. Each player's stack. Ex: 4 players>
+        stack1
+        stack2
+        stack3
+        stack4
+        <7. Blind>
+        blind
+        <8. Game number>
+        game_number
+        
+        Given the game state, you have to make a decision. You must return a word representing the action and a number representing the amount.
+        You will either call, raise or fold. The amount will be 0 if you are checking or folding. Here is the game state, as a list of numbers:
+        {game_state}
+        """
+        self.prompt = ChatPromptTemplate.from_template(template)
+
+    def action(self, game_state: list[int], action_history: list):
+        chain = self.prompt | self.llm
+        output = chain.invoke({'game_state': game_state})
+        print(output)
+        return PlayerAction.FOLD, 0
+
+
+class LLMWithRagPlayer(Player):
+
+    def __init__(self):
+        loader = PyPDFLoader(r'')
+        pages = loader.load()
+
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=800, chunk_overlap=50)
+        splits = text_splitter.split_documents(pages)
+
+        vectorstore = Chroma.from_documents(documents=splits,
+                                            embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001"))
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+
+

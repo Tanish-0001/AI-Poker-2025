@@ -7,16 +7,15 @@ from baseplayers import *
 def run_demo_game():
 
     players = [
-        FoldPlayer("Alice", 1000),
-        RaisePlayer("Bob", 1000),
-        FoldPlayer("Charlie", 1000),
-        RaisePlayer("David", 1000),
-        InputPlayer("Eve", 1000),
+        InputPlayer("Alice", 1000),
+        InputPlayer("Bob", 1000),
+        InputPlayer("Charlie", 1000),
+        InputPlayer("David", 1000),
     ]
     
     # Create game
     game = PokerGame(players, big_blind=20)
-    
+
     # Run a few hands
     for _ in range(3):
         game.start_new_hand()
@@ -24,8 +23,10 @@ def run_demo_game():
         # Main game loop
         num_tries = 0
         while game.phase != GamePhase.SHOWDOWN and num_tries < 5:
+
             if game.num_active_players() == 1:
                 game.advance_game_phase()
+
             player = game.players[game.active_player_index]
 
             print(f"\n{player.name}'s turn")
