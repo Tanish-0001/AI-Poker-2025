@@ -112,7 +112,7 @@ class MyGame:
                 bet_amount = int(0.2 * player.money)
                 print(f"{player.name} raises by 20%  ({bet_amount})")
             elif 0.6 <= win_prob <= threshold_high:
-                bet_amount = int(0.05 * self.pot)
+                bet_amount = int(0.05 * player.money)
                 print(f"{player.name} raises by 5% ({bet_amount})")
             elif 0.4 <= win_prob < 0.6:
                 bet_amount = self.current_bet
