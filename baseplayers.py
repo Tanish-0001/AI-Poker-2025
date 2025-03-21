@@ -307,8 +307,7 @@ class LLMWithRagPlayer(Player):
             phase = "river"
             board = comm_cards
 
-        hole_cards = [self.card_from_index(i) for i in game_state[:2]]
-        desc = (f"Hero holds a {hole_cards[0]} and {hole_cards[1]}. The phase of the game is {phase}. The current pot size"
+        desc = (f"Hero holds a {game_state[0]} and {game_state[1]}. The phase of the game is {phase}. The current pot size"
                 f" is {pot}. The board is {', '.join(board)}")
         return desc
 
