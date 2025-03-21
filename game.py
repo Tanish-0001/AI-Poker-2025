@@ -75,7 +75,7 @@ class PokerGame:
         if bb_player.stack > 0:
             action, amount = bb_player.take_action(PlayerAction.BET, self.big_blind)
             self.pot += amount
-            self.current_bet = amount
+            self.current_bet = self.big_blind
             print(f"{bb_player.name} posts big blind: {amount}")
 
     def _adjust_active_player_index(self):
@@ -110,7 +110,7 @@ class PokerGame:
             else:
                 action = PlayerAction.BET
 
-            if amount < min_amount:
+            if amount <= min_amount:
                 print(f"Minimum {action.value} is {min_amount}")
                 return False
 
@@ -121,22 +121,22 @@ class PokerGame:
             self.current_bet = amount
 
         if action == PlayerAction.ALL_IN:
-            if amount <= 0 or player.bet_amount <= 0:
+            if amount <= 0:
                 return False
-            if player.bet_amount > self.current_bet:
+            if amount > self.current_bet:
                 self.current_bet = player.bet_amount
-
-        # Execute action
-        print(f"{player.name} {action.value}s", end="")
-        if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
-            print(f" {amount}")
-        else:
-            print()
 
         self.action_history.append((self.active_player_index, action, amount))
 
         actual_action, actual_amount = player.take_action(action, amount)
         self.pot += actual_amount
+
+        # Execute action
+        print(f"{player.name} {action.value}s", end="")
+        if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
+            print(f" {actual_amount}")
+        else:
+            print()
 
         # Move to next player_hand
         self.has_played[self.active_player_index] = True

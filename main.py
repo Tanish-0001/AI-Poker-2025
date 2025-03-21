@@ -3,14 +3,31 @@ from game import PokerGame, GamePhase
 from ui import get_player_input
 from baseplayers import *
 
+os.environ["MISTRAL_API_KEY"] = 'Ij1rT7TL8fpf5qOrlgAeqU13AjT3jmSY'
+llm = ChatMistralAI(model="mistral-large-latest", temperature=0)
+template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
+        structured as follows.
+        [hole card 1, hole card 2, community card 1, community card 2, community card 3, community card 4, community card 5,
+        pot, current raise amount, number of players, stack of player 1, stack of player 2, ... , stack of player n, blind amount,
+        game number]\n
+        The cards will be given as a string of two characters, with the rank followed by the suit. The string "XX" indicates that the card has not been revealed yet. The current raise amount includes the big blind.\n
+        Given the game state, you have to make a move in the game. You have to decide the action and the amount you will put in the pot. You will either call, raise or fold. Consider check as call with amount 0. The amount will be 0 should you choose to fold.
+        \nYou must provide only the action and the amount, and nothing else.
+        \n\nHere is the game state, as a list of numbers:
+        {game_state}
+        \nYou currently have {stack} dollars.
+        \n\nYour output must be in the format:\nACTION, AMOUNT
+        """
+
 
 def run_demo_game():
 
     players = [
-        InputPlayer("Alice", 1000),
+        NewPlayer("Alice", 1000),
         InputPlayer("Bob", 1000),
-        InputPlayer("Charlie", 1000),
-        InputPlayer("David", 1000),
+        NewPlayer("Charlie", 1000),
+        LLMPlayer("David", 1000, llm, template),
+        LLMPlayer("Eve", 1000, llm, template)
     ]
     
     # Create game

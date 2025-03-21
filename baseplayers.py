@@ -15,12 +15,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from operator import itemgetter
+import getpass
+from langchain_mistralai import ChatMistralAI
 
 
-os.environ['LANGCHAIN_TRACING_V2'] = 'false'
-os.environ['LANGCHAIN_ENDPOINT'] = 'https://api.smith.langchain.com'
-os.environ['LANGCHAIN_API_KEY'] = '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'
-os.environ['GOOGLE_API_KEY'] = 'AIzaSyAuco9jT-DXRpYWYFJpMuezyfhUZCJfips'
+os.environ["MISTRAL_API_KEY"] = "Ij1rT7TL8fpf5qOrlgAeqU13AjT3jmSY"
 
 
 class FoldPlayer(Player):
@@ -197,47 +196,57 @@ class NewPlayer(Player):
 
 class LLMPlayer(Player):
 
-    def __init__(self, name, amount):
-        super(self, LLMPlayer).__init__()
-        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
-        template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
-        structured as follows.
-        <1. Hole Cards' Index>
-        card1
-        card2
-        <2. Community Cards' Index. 0 means not yet dealt>
-        card1
-        card2
-        card3
-        card4
-        card5
-        <3. Pot>
-        pot
-        <4. Current Raise Amount>
-        current_raise
-        <5. Number of players>
-        num_players
-        <6. Each player's stack. Ex: 4 players>
-        stack1
-        stack2
-        stack3
-        stack4
-        <7. Blind>
-        blind
-        <8. Game number>
-        game_number
-        
-        Given the game state, you have to make a decision. You must return a word representing the action and a number representing the amount.
-        You will either call, raise or fold. The amount will be 0 if you are checking or folding. Here is the game state, as a list of numbers:
-        {game_state}
-        """
+    def __init__(self, name, stack, llm, template):
+        super().__init__(name, stack)
+        self.llm = llm
         self.prompt = ChatPromptTemplate.from_template(template)
+        self.chain = self.prompt | self.llm
 
     def action(self, game_state: list[int], action_history: list):
-        chain = self.prompt | self.llm
-        output = chain.invoke({'game_state': game_state})
-        print(output)
-        return PlayerAction.FOLD, 0
+        game_state[:7] = [self.card_from_index(i) for i in game_state[:7]]
+        call_amount = game_state[8] - self.bet_amount
+        output = self.chain.invoke({'game_state': game_state, 'stack': self.stack})
+        action, amount = output.content.split(',')
+
+        try:
+            amount = int(amount)
+            if action.upper() == 'CALL':
+                return PlayerAction.CALL, call_amount
+            elif action.upper() == 'RAISE' and amount > max(game_state[-2], game_state[8]):
+                return PlayerAction.RAISE, int(amount)
+            return PlayerAction.FOLD, 0
+        except:
+            return PlayerAction.FOLD, 0
+
+    @staticmethod
+    def card_from_index(index) -> str:
+        if index == 0:
+            return "XX"
+        index -= 1  # since it is 1-indexed
+        suit = index // 13
+        rank = index % 13
+        res = ''
+        if rank == 12:
+            res += 'A'
+        elif rank == 11:
+            res += 'K'
+        elif rank == 10:
+            res += 'Q'
+        elif rank == 9:
+            res += 'J'
+        else:
+            res += str(rank + 2)
+
+        if suit == 0:
+            res += 'S'
+        elif suit == 1:
+            res += 'H'
+        elif suit == 2:
+            res += 'D'
+        else:
+            res += 'C'
+
+        return res
 
 
 class LLMWithRagPlayer(Player):
