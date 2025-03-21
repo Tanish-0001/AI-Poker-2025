@@ -8,6 +8,7 @@ Original file is located at
 """
 
 import random
+!pip install eval7
 import eval7
 
 class Player:
