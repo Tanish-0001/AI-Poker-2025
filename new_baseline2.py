@@ -147,6 +147,3 @@ if __name__ == "__main__":
 
     game.betting_round()
     game.show_player_status()
-
-!pip install eval7
-import eval7
