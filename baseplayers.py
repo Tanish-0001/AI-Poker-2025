@@ -10,16 +10,8 @@ import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import Chroma
-from langchain_core.output_parsers import StrOutputParser
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
-from operator import itemgetter
-import getpass
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
-
-os.environ["MISTRAL_API_KEY"] = ''
-os.environ["HF_TOKEN"] = ''
 
 
 class FoldPlayer(Player):
@@ -307,13 +299,13 @@ class LLMWithRagPlayer(Player):
             board = 'empty'
         elif num_unrevealed == 2:
             phase = "flop"
-            board = [self.card_from_index(i) for i in comm_cards][:3]
+            board = comm_cards[:3]
         elif num_unrevealed == 1:
             phase = "turn"
-            board = [self.card_from_index(i) for i in comm_cards][:4]
+            board = comm_cards[:4]
         else:
             phase = "river"
-            board = [self.card_from_index(i) for i in comm_cards]
+            board = comm_cards
 
         hole_cards = [self.card_from_index(i) for i in game_state[:2]]
         desc = (f"Hero holds a {hole_cards[0]} and {hole_cards[1]}. The phase of the game is {phase}. The current pot size"

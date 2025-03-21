@@ -1,12 +1,14 @@
+import os
 from player import Player, PlayerStatus
 from game import PokerGame, GamePhase
-from ui import get_player_input
-from baseplayers import *
+from baseplayers import InputPlayer, NewPlayer, LLMPlayer, LLMWithRagPlayer
 from langchain_mistralai import ChatMistralAI
 
 
-os.environ["MISTRAL_API_KEY"] = ''
-llm = ChatMistralAI(temperature=0)
+os.environ["MISTRAL_API_KEY"] = input("Enter Mistral API Key: ")
+os.environ["HF_TOKEN"] = input("Enter HF Token: ")
+
+llm = ChatMistralAI(model_name="mistral-large-latest", temperature=0)
 
 
 def run_demo_game():
