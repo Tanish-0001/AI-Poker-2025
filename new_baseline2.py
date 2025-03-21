@@ -110,11 +110,11 @@ class PokerGame:
             print(f"{player.name}'s turn. Adjusted Win Probability: {win_prob:.2f}, Current bet to match: {self.current_bet}")
 
             if win_prob > threshold_high:
-                bet_amount = int(0.2 * self.pot)
-                print(f"{player.name} raises by 20% of the pot ({bet_amount})")
+                bet_amount = int(0.2 * player.money)
+                print(f"{player.name} raises by 20%  ({bet_amount})")
             elif 0.6 <= win_prob <= threshold_high:
                 bet_amount = int(0.05 * self.pot)
-                print(f"{player.name} raises by 5% of the pot ({bet_amount})")
+                print(f"{player.name} raises by 5% ({bet_amount})")
             elif 0.4 <= win_prob < 0.6:
                 bet_amount = self.current_bet
                 print(f"{player.name} calls the bet ({bet_amount})")
