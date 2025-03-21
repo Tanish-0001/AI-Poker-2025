@@ -16,7 +16,10 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
 from operator import itemgetter
 import getpass
-from langchain_mistralai import ChatMistralAI
+from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
+
+os.environ["MISTRAL_API_KEY"] = ''
+os.environ["HF_TOKEN"] = ''
 
 
 class FoldPlayer(Player):
@@ -193,9 +196,24 @@ class NewPlayer(Player):
 
 class LLMPlayer(Player):
 
-    def __init__(self, name, stack, llm, template):
+    def __init__(self, name, stack, llm):
         super().__init__(name, stack)
         self.llm = llm
+
+        template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
+                structured as follows.
+                [hole card 1, hole card 2, community card 1, community card 2, community card 3, community card 4, community card 5,
+                pot, current raise amount, number of players, stack of player 1, stack of player 2, ... , stack of player n, blind amount,
+                game number]\n
+                The cards will be given as a string of two characters, with the rank followed by the suit. The string "XX" indicates that the card has not been revealed yet. The current raise amount includes the big blind.\n
+                Given the game state, you have to make a move in the game. You have to decide the action and the amount you will put in the pot. You will either call, raise or fold. Consider check as call with amount 0. The amount will be 0 should you choose to fold.
+                \nYou must provide only the action and the amount, and nothing else.
+                \n\nHere is the game state, as a list of numbers:
+                {game_state}
+                \nYou currently have {stack} dollars.
+                \n\nYour output must be in the format:\nACTION, AMOUNT
+                """
+
         self.prompt = ChatPromptTemplate.from_template(template)
         self.chain = self.prompt | self.llm
 
@@ -248,17 +266,109 @@ class LLMPlayer(Player):
 
 class LLMWithRagPlayer(Player):
 
-    def __init__(self):
-        loader = PyPDFLoader(r'')
+    def __init__(self, name, stack, llm):
+        super().__init__(name, stack)
+        loader = PyPDFLoader(r'Poker_guide.pdf')
         pages = loader.load()
 
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=800, chunk_overlap=50)
         splits = text_splitter.split_documents(pages)
 
         vectorstore = Chroma.from_documents(documents=splits,
-                                            embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001"))
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+                                            embedding=MistralAIEmbeddings(model="mistral-embed"))
+        self.retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+        self.llm = llm
 
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+        template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
+                structured as follows.
+                [hole card 1, hole card 2, community card 1, community card 2, community card 3, community card 4, community card 5,
+                pot, current raise amount, number of players, stack of player 1, stack of player 2, ... , stack of player n, blind amount,
+                game number]\n
+                The cards will be given as a string of two characters, with the rank followed by the suit. The string "XX" indicates that the card has not been revealed yet. The current raise amount includes the big blind.\n
+                You will also be given some relevant context. Given the game state and context, you have to make a move in the game. You have to decide the action and the amount you will put in the pot. You will either call, raise or fold. Consider check as call with amount 0. The amount will be 0 should you choose to fold.
+                \nYou must provide only the action and the amount, and nothing else.
+                \n\nHere is the game state, as a list of numbers:
+                {game_state}
+                \n\nHere is the context:
+                {context}
+                \nYou currently have {stack} dollars.
+                \n\nYour output must be in the format:\nACTION, AMOUNT
+                """
 
+        self.prompt = ChatPromptTemplate.from_template(template)
+        self.chain = self.prompt | self.llm
 
+    def get_state_description(self, game_state):
+        comm_cards = game_state[2:7]
+        pot = game_state[7]
+        num_unrevealed = comm_cards.count(0)
+        if num_unrevealed == 5:
+            phase = "pre-flop"
+            board = 'empty'
+        elif num_unrevealed == 2:
+            phase = "flop"
+            board = [self.card_from_index(i) for i in comm_cards][:3]
+        elif num_unrevealed == 1:
+            phase = "turn"
+            board = [self.card_from_index(i) for i in comm_cards][:4]
+        else:
+            phase = "river"
+            board = [self.card_from_index(i) for i in comm_cards]
+
+        hole_cards = [self.card_from_index(i) for i in game_state[:2]]
+        desc = (f"Hero holds a {hole_cards[0]} and {hole_cards[1]}. The phase of the game is {phase}. The current pot size"
+                f" is {pot}. The board is {', '.join(board)}")
+        return desc
+
+    def get_relevant_docs(self, game_state):
+        game_desc = self.get_state_description(game_state)
+        retrieved_docs = self.retriever.invoke(game_desc)
+        return retrieved_docs
+
+    @staticmethod
+    def card_from_index(index) -> str:
+        if index == 0:
+            return "XX"
+        index -= 1  # since it is 1-indexed
+        suit = index // 13
+        rank = index % 13
+        res = ''
+        if rank == 12:
+            res += 'A'
+        elif rank == 11:
+            res += 'K'
+        elif rank == 10:
+            res += 'Q'
+        elif rank == 9:
+            res += 'J'
+        else:
+            res += str(rank + 2)
+
+        if suit == 0:
+            res += 'S'
+        elif suit == 1:
+            res += 'H'
+        elif suit == 2:
+            res += 'D'
+        else:
+            res += 'C'
+
+        return res
+
+    def action(self, game_state: list[int], action_history: list):
+        game_state[:7] = [self.card_from_index(i) for i in game_state[:7]]
+        call_amount = game_state[8] - self.bet_amount
+        context = self.get_state_description(game_state)
+        output = self.chain.invoke({'game_state': game_state, 'stack': self.stack, 'context': context})
+        print(output)
+        action, amount = output.content.split(',')
+
+        try:
+            amount = int(amount)
+            if action.upper() == 'CALL':
+                return PlayerAction.CALL, call_amount
+            elif action.upper() == 'RAISE' and amount > max(game_state[-2], game_state[8]):
+                return PlayerAction.RAISE, int(amount)
+            return PlayerAction.FOLD, 0
+        except:
+            return PlayerAction.FOLD, 0

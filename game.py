@@ -126,7 +126,7 @@ class PokerGame:
             if amount > self.current_bet:
                 self.current_bet = player.bet_amount
 
-        self.action_history.append((self.active_player_index, action, amount))
+        self.action_history.append((self.phase.value, self.active_player_index + 1, action.value, amount))
 
         actual_action, actual_amount = player.take_action(action, amount)
         self.pot += actual_amount
