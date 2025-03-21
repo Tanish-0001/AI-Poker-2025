@@ -29,7 +29,7 @@ class Player:
     def reset_bet(self):
         self.current_bet = 0
 
-class PokerGame:
+class MyGame:
     def __init__(self, players, starting_money=1000):
         self.players = [Player(name, starting_money) for name in players]
         self.pot = 0
@@ -134,16 +134,7 @@ class PokerGame:
 # Example of game setup and execution
 if __name__ == "__main__":
     players = ["Alice"]
-    game = PokerGame(players)
-
-    game.betting_round()
-    game.show_player_status()
-
-
-# Example of game setup and execution
-if __name__ == "__main__":
-    players = ["Alice"]
-    game = PokerGame(players)
+    game = MyGame(players)
 
     game.betting_round()
     game.show_player_status()
