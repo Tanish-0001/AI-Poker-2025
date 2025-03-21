@@ -19,7 +19,7 @@ import getpass
 from langchain_mistralai import ChatMistralAI
 
 
-os.environ["MISTRAL_API_KEY"] = "Ij1rT7TL8fpf5qOrlgAeqU13AjT3jmSY"
+os.environ["MISTRAL_API_KEY"] = ''
 
 
 class FoldPlayer(Player):

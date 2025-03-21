@@ -3,7 +3,7 @@ from game import PokerGame, GamePhase
 from ui import get_player_input
 from baseplayers import *
 
-os.environ["MISTRAL_API_KEY"] = 'Ij1rT7TL8fpf5qOrlgAeqU13AjT3jmSY'
+os.environ["MISTRAL_API_KEY"] = ''
 llm = ChatMistralAI(model="mistral-large-latest", temperature=0)
 template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
         structured as follows.
