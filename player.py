@@ -51,8 +51,8 @@ class Player:
             max_bet = min(amount, self.stack)
             
             # Update stack and bet amount
-            self.stack -= max_bet
-            self.bet_amount += max_bet
+            self.stack -= (max_bet - self.bet_amount)
+            self.bet_amount = max_bet
             
             # Check if player_hand is all-in
             if self.stack == 0:

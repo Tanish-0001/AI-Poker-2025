@@ -6,6 +6,17 @@ import random
 import treys as tr
 from treys import Evaluator
 from collections import deque
+import os
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain.prompts import ChatPromptTemplate
+from operator import itemgetter
+import getpass
+from langchain_mistralai import ChatMistralAI
 
 
 class FoldPlayer(Player):
@@ -54,6 +65,8 @@ class InputPlayer(Player):
                 elif action_input == "3":
                     amount = int(input(f"Enter total raise amount: "))
                     return PlayerAction.RAISE, amount
+                else:
+                    return PlayerAction.FOLD, 0
         except ValueError:
             print("Invalid input")
             return PlayerAction.FOLD, 0
@@ -176,3 +189,76 @@ class NewPlayer(Player):
                 game_state[6] == 0):
             return self.make_preflop_dec(game_state)
         return self.make_postflop_dec(game_state)
+
+
+class LLMPlayer(Player):
+
+    def __init__(self, name, stack, llm, template):
+        super().__init__(name, stack)
+        self.llm = llm
+        self.prompt = ChatPromptTemplate.from_template(template)
+        self.chain = self.prompt | self.llm
+
+    def action(self, game_state: list[int], action_history: list):
+        game_state[:7] = [self.card_from_index(i) for i in game_state[:7]]
+        call_amount = game_state[8] - self.bet_amount
+        output = self.chain.invoke({'game_state': game_state, 'stack': self.stack})
+        action, amount = output.content.split(',')
+
+        try:
+            amount = int(amount)
+            if action.upper() == 'CALL':
+                return PlayerAction.CALL, call_amount
+            elif action.upper() == 'RAISE' and amount > max(game_state[-2], game_state[8]):
+                return PlayerAction.RAISE, int(amount)
+            return PlayerAction.FOLD, 0
+        except:
+            return PlayerAction.FOLD, 0
+
+    @staticmethod
+    def card_from_index(index) -> str:
+        if index == 0:
+            return "XX"
+        index -= 1  # since it is 1-indexed
+        suit = index // 13
+        rank = index % 13
+        res = ''
+        if rank == 12:
+            res += 'A'
+        elif rank == 11:
+            res += 'K'
+        elif rank == 10:
+            res += 'Q'
+        elif rank == 9:
+            res += 'J'
+        else:
+            res += str(rank + 2)
+
+        if suit == 0:
+            res += 'S'
+        elif suit == 1:
+            res += 'H'
+        elif suit == 2:
+            res += 'D'
+        else:
+            res += 'C'
+
+        return res
+
+
+class LLMWithRagPlayer(Player):
+
+    def __init__(self):
+        loader = PyPDFLoader(r'')
+        pages = loader.load()
+
+        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(chunk_size=800, chunk_overlap=50)
+        splits = text_splitter.split_documents(pages)
+
+        vectorstore = Chroma.from_documents(documents=splits,
+                                            embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001"))
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
+
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0)
+
+
