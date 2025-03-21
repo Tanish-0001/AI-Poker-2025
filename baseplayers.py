@@ -11,7 +11,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
-from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 
 
 class FoldPlayer(Player):
@@ -188,9 +188,9 @@ class NewPlayer(Player):
 
 class LLMPlayer(Player):
 
-    def __init__(self, name, stack, llm):
+    def __init__(self, name, stack):
         super().__init__(name, stack)
-        self.llm = llm
+        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key='')
 
         template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
                 structured as follows.
@@ -258,7 +258,7 @@ class LLMPlayer(Player):
 
 class LLMWithRagPlayer(Player):
 
-    def __init__(self, name, stack, llm):
+    def __init__(self, name, stack):
         super().__init__(name, stack)
         loader = PyPDFLoader(r'Poker_guide.pdf')
         pages = loader.load()
@@ -267,9 +267,10 @@ class LLMWithRagPlayer(Player):
         splits = text_splitter.split_documents(pages)
 
         vectorstore = Chroma.from_documents(documents=splits,
-                                            embedding=MistralAIEmbeddings(model="mistral-embed"))
+                                            embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001",
+                                                                                   google_api_key=''))
         self.retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
-        self.llm = llm
+        self.llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", temperature=0, google_api_key='')
 
         template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
                 structured as follows.
@@ -351,7 +352,6 @@ class LLMWithRagPlayer(Player):
         call_amount = game_state[8] - self.bet_amount
         context = self.get_state_description(game_state)
         output = self.chain.invoke({'game_state': game_state, 'stack': self.stack, 'context': context})
-        print(output)
         action, amount = output.content.split(',')
 
         try:

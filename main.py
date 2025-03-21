@@ -1,24 +1,17 @@
 import os
+import time
 from player import Player, PlayerStatus
 from game import PokerGame, GamePhase
 from baseplayers import InputPlayer, NewPlayer, LLMPlayer, LLMWithRagPlayer
-from langchain_mistralai import ChatMistralAI
-
-
-os.environ["MISTRAL_API_KEY"] = input("Enter Mistral API Key: ")
-os.environ["HF_TOKEN"] = input("Enter HF Token: ")
-
-llm = ChatMistralAI(model_name="mistral-large-latest", temperature=0)
 
 
 def run_demo_game():
 
     players = [
-        LLMWithRagPlayer("Alice", 1000, llm),
+        LLMWithRagPlayer("Alice", 1000),
         InputPlayer("Bob", 1000),
-        NewPlayer("Charlie", 1000),
-        LLMPlayer("David", 1000, llm),
-        LLMPlayer("Eve", 1000, llm)
+        LLMPlayer("Charlie", 1000),
+        InputPlayer("David", 1000),
     ]
     
     # Create game
@@ -31,7 +24,6 @@ def run_demo_game():
         # Main game loop
         num_tries = 0
         while game.phase != GamePhase.SHOWDOWN and num_tries < 5:
-            print(game.action_history)
             if game.num_active_players() == 1:
                 game.advance_game_phase()
 
@@ -47,6 +39,7 @@ def run_demo_game():
                 num_tries += 1
             else:
                 num_tries = 0
+            time.sleep(5)
         print("\nHand complete. Press Enter for next hand...")
         input()
 
