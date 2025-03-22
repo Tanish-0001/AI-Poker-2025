@@ -190,7 +190,7 @@ class LLMPlayer(Player):
 
     def __init__(self, name, stack):
         super().__init__(name, stack)
-        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key='AIzaSyCdz1R3YUmXysx9Mk3nqi_zmKwxh3C3tLo')
+        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key='')
 
         template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
                 structured as follows.
@@ -268,9 +268,9 @@ class LLMWithRagPlayer(Player):
 
         vectorstore = Chroma.from_documents(documents=splits,
                                             embedding=GoogleGenerativeAIEmbeddings(model="models/embedding-001",
-                                                                                   google_api_key='AIzaSyAuco9jT-DXRpYWYFJpMuezyfhUZCJfips'))
+                                                                                   google_api_key=''))
         self.retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
-        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key='AIzaSyAuco9jT-DXRpYWYFJpMuezyfhUZCJfips')
+        self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key='')
 
         template = """You are a professional poker player. You will be given the current poker game state as a sequence of numbers
                 structured as follows.
