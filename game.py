@@ -289,9 +289,6 @@ class PokerGame:
     def num_all_in_players(self) -> int:  # players who are all in
         return len([p for p in self.players if p.status == PlayerStatus.ALL_IN])
 
-    def num_all_in_players(self):
-        return len([p for p in self.players if p.status == PlayerStatus.ALL_IN])
-
     def get_player_input(self) -> bool:
         player = self.players[self.active_player_index]
         game_state = self.get_game_state()
