@@ -28,46 +28,46 @@ class Player:
     status: PlayerStatus = PlayerStatus.ACTIVE
     hole_cards: List[Card] = None
     bet_amount: int = 0
-    
+
     def __post_init__(self):
         if self.hole_cards is None:
             self.hole_cards = []
-    
+
     def reset_for_new_hand(self):
         self.hole_cards = []
         self.status = PlayerStatus.ACTIVE if self.stack > 0 else PlayerStatus.OUT
         self.bet_amount = 0
-    
+
     def can_make_action(self) -> bool:
         return self.status in [PlayerStatus.ACTIVE]
-    
+
     def take_action(self, action: PlayerAction, amount: int = 0) -> Tuple[PlayerAction, int]:
         if action == PlayerAction.FOLD:
             self.status = PlayerStatus.FOLDED
             return action, 0
-        
+
         if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
             # Calculate maximum possible bet
-            max_bet = min(amount,self.stack)
+            max_bet = min(amount, self.stack)
             delta = max_bet - self.bet_amount
 
-            if(action == PlayerAction.RAISE): # raising to the amount not by the amount
-             max_bet = min(amount-self.bet_amount, self.stack)
-            
-            #print(f"max_bet = {max_bet}\n")
+            if action == PlayerAction.RAISE:  # raising to the amount not by the amount
+                max_bet = min(amount - self.bet_amount, self.stack)
+
             # Update stack and bet amount
-            if max_bet == self.stack: # all-in case, when player is all-in the chips he puts in is the stack itself
+            if max_bet == self.stack:  # all-in case, when player is all-in the chips he puts in is the stack itself
                 self.stack -= max_bet
-            else: # when player is not all-in he has to reach maximum bet
-                self.stack -= delta #(max_bet - self.bet_amount) 
-            self.bet_amount = max_bet
-            
+                self.bet_amount += max_bet
+            else:  # when player is not all-in he has to reach maximum bet
+                self.stack -= delta  # (max_bet - self.bet_amount)
+                self.bet_amount += delta
+
             # Check if player_hand is all-in
             if self.stack == 0:
                 self.status = PlayerStatus.ALL_IN
                 return PlayerAction.ALL_IN, max_bet
-            
-            return action, delta # if the case in not all-in case then return delta not max_bet  
+
+            return action, delta  # if the case in not all-in case then return delta not max_bet
 
         if action == PlayerAction.ALL_IN:
             actual = self.stack
@@ -75,7 +75,7 @@ class Player:
             self.stack = 0
             self.status = PlayerStatus.ALL_IN
             return PlayerAction.ALL_IN, actual
-        
+
         return action, 0
 
     def action(self, game_state: list[int], action_history: list) -> Tuple[PlayerAction, int]:

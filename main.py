@@ -39,7 +39,7 @@ def run_demo_game():
                 num_tries += 1
             else:
                 num_tries = 0
-            #time.sleep(5)
+
         print("\nHand complete. Press Enter for next hand...")
         input()
 

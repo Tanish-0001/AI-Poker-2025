@@ -90,6 +90,7 @@ class PokerGame:
 
     def player_action(self, action: PlayerAction, amount: int = 0) -> bool:
         player = self.players[self.active_player_index]
+        amount = min(amount, player.stack)
 
         # Validate action
         if action == PlayerAction.CHECK and self.current_bet > player.bet_amount:
@@ -153,26 +154,24 @@ class PokerGame:
         return True
 
     def _is_betting_round_complete(self) -> bool:
-        active_players = [p for p in self.players if p.status in [PlayerStatus.ACTIVE, PlayerStatus.ALL_IN]]
-
-        # If only one active player_hand (others folded), round is complete
-        if self.num_active_players() + self.num_all_in_players() == 1:
-            return True
-
-        # Check if all active players have matched the current bet
-        return (all(self.has_played) and
-                all(p.bet_amount == self.current_bet or p.status != PlayerStatus.ACTIVE for p in active_players))
+        for player in self.players:
+            if player.status in [PlayerStatus.FOLDED, PlayerStatus.ALL_IN]:
+                continue
+            if player.bet_amount != self.current_bet:
+                return False
+        return True
 
     def advance_game_phase(self):
         # Reset bet amounts for the next betting round
-        
-        if(self.num_active_players() + self.num_all_in_players() == 1): # all players folded except one
-            self.direct_showdown() # go directly to showdown and declare winner
+
+        if self.num_active_players() + self.num_all_in_players() == 1:  # all players folded except one
+            self.direct_showdown()  # go directly to showdown and declare winner
             return
-        
-        if(self.num_all_in_players() == ( len(self.players) - self.num_active_players() )): # all players other than folded players are all-in
-           self.all_in_showdown()   # more than one person are all-in and all others are folded
-           return 
+
+        no_one_active = all([p.status in [PlayerStatus.ALL_IN, PlayerStatus.FOLDED] for p in self.players])
+        if no_one_active:  # all players other than folded players are all-in
+            self.all_in_showdown()  # more than one person are all-in and all others are folded
+            return
 
         for player in self.players:
             player.bet_amount = 0
@@ -198,17 +197,18 @@ class PokerGame:
         self.active_player_index = (self.button_position + 1) % len(self.players)
         self._adjust_active_player_index()
         self._reset_has_played()
-    
-    def direct_showdown(self): # direct to showdown
+
+    def direct_showdown(self):  # direct to showdown
         self.phase = GamePhase.SHOWDOWN
         self._showdown()
         return
-    
-    def all_in_showdown(self): # if more than one players are all-in first deal sufficient community cards then go to showdown
+
+    def all_in_showdown(
+            self):  # if more than one players are all-in first deal sufficient community cards then go to showdown
         num_remaining = 5 - len(self.community_cards)
         if num_remaining > 0:
             self.community_cards.extend(self.deck.deal(num_remaining))
-        
+
         self.phase = GamePhase.SHOWDOWN
         self._showdown()
         return
@@ -257,7 +257,7 @@ class PokerGame:
             print(f"{player.name} wins {winnings} chips with {best_result.hand_rank.name}")
 
     def _display_game_state(self):
-        #print(f"current bet = {self.current_bet} and {self.players[self.active_player_index].name}'s bet = {self.players[self.active_player_index].bet_amount}")
+        # print(f"current bet = {self.current_bet} and {self.players[self.active_player_index].name}'s bet = {self.players[self.active_player_index].bet_amount}")
         print(f"\nPhase: {self.phase.value}")
         print(f"Pot: {self.pot}")
 
@@ -285,8 +285,8 @@ class PokerGame:
 
     def num_active_players(self) -> int:
         return len([p for p in self.players if p.status == PlayerStatus.ACTIVE])
-    
-    def num_all_in_players(self) -> int: # players who are all in
+
+    def num_all_in_players(self) -> int:  # players who are all in
         return len([p for p in self.players if p.status == PlayerStatus.ALL_IN])
 
     def num_all_in_players(self):
