@@ -79,4 +79,12 @@ class Player:
         return action, 0
 
     def action(self, game_state: list[int], action_history: list) -> Tuple[PlayerAction, int]:
+        """
+        Parameters:
+            game_state: a numerical representation of the game state
+            action_history: a list of actions taken in sequence
+
+        Returns:
+            A PlayerAction and amount tuple
+        """
         return PlayerAction.FOLD, 0
