@@ -2,14 +2,13 @@ import os
 import time
 from player import Player, PlayerStatus
 from game import PokerGame, GamePhase
-from baseplayers import InputPlayer, NewPlayer, LLMPlayer, LLMWithRagPlayer
+from baseplayers import InputPlayer, NewPlayer
 
 
 def run_demo_game():
 
     players = [
         InputPlayer("Alice", 1000),
-        InputPlayer("Alice", 2000),
         InputPlayer("Bob", 1000),
         InputPlayer("Charlie", 2000),
         InputPlayer("David", 1000),
