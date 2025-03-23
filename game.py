@@ -60,7 +60,7 @@ class PokerGame:
         self._adjust_active_player_index()
 
         # Show game state
-        self._display_game_state()
+        self.display_game_state()
 
     def _deal_hole_cards(self):
         for player in self.players:
@@ -144,22 +144,22 @@ class PokerGame:
         self.active_player_index = (self.active_player_index + 1) % len(self.players)
 
         # Check if betting round is complete
-        if self._is_betting_round_complete():
+        if self.is_betting_round_complete():
             self.advance_game_phase()
         else:
             self._adjust_active_player_index()
 
         # Show updated game state
-        self._display_game_state()
+        self.display_game_state()
         return True
 
-    def _is_betting_round_complete(self) -> bool:
+    def is_betting_round_complete(self) -> bool:
         for player in self.players:
             if player.status in [PlayerStatus.FOLDED, PlayerStatus.ALL_IN]:
                 continue
             if player.bet_amount != self.current_bet:
                 return False
-        return True
+        return all(self.has_played)
 
     def advance_game_phase(self):
         # Reset bet amounts for the next betting round
@@ -256,8 +256,7 @@ class PokerGame:
             player.stack += winnings
             print(f"{player.name} wins {winnings} chips with {best_result.hand_rank.name}")
 
-    def _display_game_state(self):
-        # print(f"current bet = {self.current_bet} and {self.players[self.active_player_index].name}'s bet = {self.players[self.active_player_index].bet_amount}")
+    def display_game_state(self):
         print(f"\nPhase: {self.phase.value}")
         print(f"Pot: {self.pot}")
 

@@ -8,8 +8,8 @@ from baseplayers import InputPlayer, NewPlayer
 def run_demo_game():
 
     players = [
-        InputPlayer("Alice", 1000),
-        InputPlayer("Bob", 1000),
+        InputPlayer("Alice", 100),
+        InputPlayer("Bob", 567),
         InputPlayer("Charlie", 2000),
         InputPlayer("David", 1000),
     ]
@@ -24,10 +24,13 @@ def run_demo_game():
         # Main game loop
         num_tries = 0
         while game.phase != GamePhase.SHOWDOWN and num_tries < 5:
-            if (game.num_active_players() + game.num_all_in_players()) == 1: # advance only if one player is active and all others have folded
-                game.advance_game_phase()
 
             player = game.players[game.active_player_index]
+
+            if game.num_active_players() == 1 and player.bet_amount == game.current_bet:
+                game.advance_game_phase()
+                game.display_game_state()
+                continue
 
             print(f"\n{player.name}'s turn")
             print(f"Your cards: {[str(c) for c in player.hole_cards]}")
