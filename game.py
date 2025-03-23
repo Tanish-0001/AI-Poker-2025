@@ -25,7 +25,6 @@ class PokerGame:
         self.phase = GamePhase.SETUP
         self.button_position = 0
         self.active_player_index = 0
-        self.min_raise = big_blind
         self.has_played = [False] * len(self.players)
         self.action_history = []
         self.game_number = game_number
@@ -38,7 +37,6 @@ class PokerGame:
         self.pot = 0
         self.current_bet = 0
         self.phase = GamePhase.SETUP
-        self.min_raise = self.big_blind
 
         # Reset player_hand statuses
         for i, player in enumerate(self.players):
@@ -98,7 +96,7 @@ class PokerGame:
             return False
 
         if action == PlayerAction.CALL:
-            amount = self.current_bet
+            amount = self.current_bet - player.bet_amount
 
         if action in [PlayerAction.BET, PlayerAction.RAISE]:
             # For a bet, the minimum is the big blind
@@ -115,9 +113,6 @@ class PokerGame:
                 print(f"Minimum {action.value} is {min_amount}")
                 return False
 
-            # Update minimum raise
-            self.min_raise = amount - self.current_bet
-
             # Update current bet
             self.current_bet = amount
 
@@ -127,13 +122,12 @@ class PokerGame:
             if amount > self.current_bet:
                 self.current_bet = player.bet_amount
 
-        self.action_history.append((self.phase.value, self.active_player_index + 1, action.value, amount))
-
         actual_action, actual_amount = player.take_action(action, amount)
         self.pot += actual_amount
+        self.action_history.append((self.phase.value, self.active_player_index + 1, actual_action.value, actual_amount))
 
         # Execute action
-        print(f"{player.name} {action.value}s", end="")
+        print(f"{player.name} {actual_action.value}s", end="")
         if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
             print(f" {actual_amount}")
         else:
@@ -176,7 +170,6 @@ class PokerGame:
         for player in self.players:
             player.bet_amount = 0
         self.current_bet = 0
-        self.min_raise = self.big_blind
 
         # Move to the next phase
         if self.phase == GamePhase.PRE_FLOP:

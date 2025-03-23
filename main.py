@@ -17,7 +17,7 @@ def run_game():
     # Create game
     game = PokerGame(players, big_blind=20)
 
-    # Run a few hands
+    # Run several hands
     for _ in range(5):
         game.start_new_hand()
         
@@ -51,8 +51,8 @@ def run_game():
             else:
                 num_tries = 0
 
-        print("\nHand complete. Press Enter for next hand...")
-        input()
+        print("\nHand complete. Starting new hand...")
+        time.sleep(5)
 
 
 if __name__ == "__main__":

@@ -46,12 +46,20 @@ class Player:
             self.status = PlayerStatus.FOLDED
             return action, 0
 
-        if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
+        if action == PlayerAction.CALL:
+            max_bet = min(amount, self.stack)
+            self.stack -= max_bet
+            self.bet_amount += max_bet
+            if self.stack == 0:
+                return PlayerAction.ALL_IN, max_bet
+            return PlayerAction.CALL, max_bet
+
+        if action in [PlayerAction.BET, PlayerAction.RAISE]:
             # Calculate maximum possible bet
             max_bet = min(amount, self.stack)
             delta = max_bet - self.bet_amount
 
-            if action == PlayerAction.RAISE:  # raising to the amount not by the amount
+            if action == PlayerAction.RAISE:
                 max_bet = min(amount - self.bet_amount, self.stack)
 
             # Update stack and bet amount
