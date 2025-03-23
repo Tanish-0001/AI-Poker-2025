@@ -48,10 +48,18 @@ class Player:
         
         if action in [PlayerAction.BET, PlayerAction.RAISE, PlayerAction.CALL]:
             # Calculate maximum possible bet
-            max_bet = min(amount, self.stack)
+            max_bet = min(amount,self.stack)
+            delta = max_bet - self.bet_amount
+
+            if(action == PlayerAction.RAISE): # raising to the amount not by the amount
+             max_bet = min(amount-self.bet_amount, self.stack)
             
+            #print(f"max_bet = {max_bet}\n")
             # Update stack and bet amount
-            self.stack -= (max_bet - self.bet_amount)
+            if max_bet == self.stack: # all-in case, when player is all-in the chips he puts in is the stack itself
+                self.stack -= max_bet
+            else: # when player is not all-in he has to reach maximum bet
+                self.stack -= delta #(max_bet - self.bet_amount) 
             self.bet_amount = max_bet
             
             # Check if player_hand is all-in
@@ -59,7 +67,7 @@ class Player:
                 self.status = PlayerStatus.ALL_IN
                 return PlayerAction.ALL_IN, max_bet
             
-            return action, max_bet
+            return action, delta # if the case in not all-in case then return delta not max_bet  
 
         if action == PlayerAction.ALL_IN:
             actual = self.stack

@@ -8,9 +8,9 @@ from baseplayers import InputPlayer, NewPlayer, LLMPlayer, LLMWithRagPlayer
 def run_demo_game():
 
     players = [
-        LLMWithRagPlayer("Alice", 1000),
+        InputPlayer("Alice", 1000),
         InputPlayer("Bob", 1000),
-        LLMPlayer("Charlie", 1000),
+        InputPlayer("Charlie", 2000),
         InputPlayer("David", 1000),
     ]
     
@@ -24,7 +24,7 @@ def run_demo_game():
         # Main game loop
         num_tries = 0
         while game.phase != GamePhase.SHOWDOWN and num_tries < 5:
-            if game.num_active_players() == 1:
+            if (game.num_active_players() + game.num_all_in_players()) == 1: # advance only if one player is active and all others have folded
                 game.advance_game_phase()
 
             player = game.players[game.active_player_index]
@@ -39,7 +39,7 @@ def run_demo_game():
                 num_tries += 1
             else:
                 num_tries = 0
-            time.sleep(5)
+            #time.sleep(5)
         print("\nHand complete. Press Enter for next hand...")
         input()
 

@@ -156,7 +156,7 @@ class PokerGame:
         active_players = [p for p in self.players if p.status in [PlayerStatus.ACTIVE, PlayerStatus.ALL_IN]]
 
         # If only one active player_hand (others folded), round is complete
-        if self.num_active_players() == 1:
+        if (self.num_active_players() + self.num_all_in_players()) == 1:
             return True
 
         # Check if all active players have matched the current bet
@@ -165,6 +165,15 @@ class PokerGame:
 
     def advance_game_phase(self):
         # Reset bet amounts for the next betting round
+        
+        if(self.num_active_players() + self.num_all_in_players() == 1): # all players folded except one
+            self.direct_showdown() # go directly to showdown and declare winner
+            return
+        
+        if(self.num_all_in_players() == ( len(self.players) - self.num_active_players() )): # all players other than folded players are all-in
+           self.all_in_showdown()   # more than one person are all-in and all others are folded
+           return 
+
         for player in self.players:
             player.bet_amount = 0
         self.current_bet = 0
@@ -189,6 +198,20 @@ class PokerGame:
         self.active_player_index = (self.button_position + 1) % len(self.players)
         self._adjust_active_player_index()
         self._reset_has_played()
+    
+    def direct_showdown(self): # direct to showdown
+        self.phase = GamePhase.SHOWDOWN
+        self._showdown()
+        return
+    
+    def all_in_showdown(self): # if more than one players are all-in first deal sufficient community cards then go to showdown
+        num_remaining = 5 - len(self.community_cards)
+        if num_remaining > 0:
+            self.community_cards.extend(self.deck.deal(num_remaining))
+        
+        self.phase = GamePhase.SHOWDOWN
+        self._showdown()
+        return
 
     def _showdown(self):
         # Evaluate hands for all players who haven't folded
@@ -234,6 +257,7 @@ class PokerGame:
             print(f"{player.name} wins {winnings} chips with {best_result.hand_rank.name}")
 
     def _display_game_state(self):
+        #print(f"current bet = {self.current_bet} and {self.players[self.active_player_index].name}'s bet = {self.players[self.active_player_index].bet_amount}")
         print(f"\nPhase: {self.phase.value}")
         print(f"Pot: {self.pot}")
 
@@ -261,6 +285,9 @@ class PokerGame:
 
     def num_active_players(self) -> int:
         return len([p for p in self.players if p.status == PlayerStatus.ACTIVE])
+    
+    def num_all_in_players(self) -> int: # players who are all in
+        return len([p for p in self.players if p.status == PlayerStatus.ALL_IN])
 
     def get_player_input(self) -> bool:
         player = self.players[self.active_player_index]
