@@ -1,2 +1,36 @@
-# AI-Poker-2025
-Ace is either high or low (whichever gives best hand). There is no side pot. Create a player class that inherits from Player and overrides the function action. This function will receive the game state and the action histories. This function must return a tuple containing the action (PlayerAction) and the amount (0 in case of fold, check).
+# Poker Engine, AI Poker 2025
+
+## Overview
+This project provides a framework for simulating poker games. It allows you to create custom poker players by extending a base Player class and overriding the action function. 
+
+## Features
+- No side pot.
+- There is only one blind.
+- Aces are treated as either high or low depending on which gives a better hand.
+
+## Getting Started
+
+To get started with the Poker Engine Simulator, first clone the repository using:
+
+```bash
+git clone https://github.com/Tanish-0001/AI-Poker-2025.git
+```
+
+Then you can create a custom player by implementing a class that inherits from the base Player class, then implement the function action. Note that if you are using \_\_init\_\_, you must call ```super().__init__()``` with the parameters name and stack. This function must return an action (of the type PlayerAction) and an amount.
+
+Optionally, if you would like to play poker yourself, you can use the InputPlayer player provided in baseplayers.py
+    
+
+### Example
+
+Here’s a simple example of how to create a custom player class:
+
+```python
+from player import Player, PlayerAction
+
+class MyPlayer(Player):
+    def action(self, game_state, action_history):
+        # Implement your strategy here
+        # Example: Always fold
+        return PlayerAction.FOLD, 0
+```
