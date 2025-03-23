@@ -156,7 +156,7 @@ class PokerGame:
         active_players = [p for p in self.players if p.status in [PlayerStatus.ACTIVE, PlayerStatus.ALL_IN]]
 
         # If only one active player_hand (others folded), round is complete
-        if self.num_active_players() == 1:
+        if self.num_active_players() + self.num_all_in_players() == 1:
             return True
 
         # Check if all active players have matched the current bet
@@ -261,6 +261,9 @@ class PokerGame:
 
     def num_active_players(self) -> int:
         return len([p for p in self.players if p.status == PlayerStatus.ACTIVE])
+
+    def num_all_in_players(self):
+        return len([p for p in self.players if p.status == PlayerStatus.ALL_IN])
 
     def get_player_input(self) -> bool:
         player = self.players[self.active_player_index]
