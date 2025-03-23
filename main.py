@@ -1,6 +1,6 @@
 import os
 import time
-from player import Player, PlayerStatus
+from player import Player, PlayerStatus, PlayerAction
 from game import PokerGame, GamePhase
 from baseplayers import InputPlayer
 
@@ -23,7 +23,12 @@ def run_game():
         
         # Main game loop
         num_tries = 0
-        while game.phase != GamePhase.SHOWDOWN and num_tries < 5:
+        while game.phase != GamePhase.SHOWDOWN:
+
+            if num_tries == 3:
+                game.player_action(PlayerAction.FOLD, 0)
+                num_tries = 0
+                continue
 
             player = game.players[game.active_player_index]
 
@@ -34,8 +39,11 @@ def run_game():
 
             print(f"\n{player.name}'s turn")
             print(f"Your cards: {[str(c) for c in player.hole_cards]}")
-            
-            is_successful = game.get_player_input()
+
+            try:
+                is_successful = game.get_player_input()
+            except TypeError:
+                is_successful = False
 
             if not is_successful:
                 print("Invalid command received.")
