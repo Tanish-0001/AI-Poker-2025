@@ -29,10 +29,16 @@ Here’s a simple example of how to create a custom player class:
 from player import Player, PlayerAction
 
 class MyPlayer(Player):
+    def __init__(self, name, stack, strategy="fold"):
+        super().__init__(name, stack)
+        self.strategy = strategy
+
     def action(self, game_state, action_history):
         # Implement your strategy here
-        # Example: Always fold
-        return PlayerAction.FOLD, 0
+        if self.strategy == "fold":
+            return PlayerAction.FOLD, 0
+        else:
+            return PlayerAction.ALL_IN, self.stack
 ```
 
 Note: If you find any bugs, please e-mail them to ieee.sb@pilani.bits-pilani.ac.in
