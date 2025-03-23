@@ -34,3 +34,5 @@ class MyPlayer(Player):
         # Example: Always fold
         return PlayerAction.FOLD, 0
 ```
+
+Note: If you find any bugs, please e-mail them to ieee.sb@pilani.bits-pilani.ac.in
