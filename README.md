@@ -10,7 +10,7 @@ This project provides a framework for simulating poker games. It allows you to c
 
 ## Getting Started
 
-To get started with the Poker Engine Simulator, first clone the repository using:
+To get started with the Poker Engine, first clone the repository using:
 
 ```bash
 git clone https://github.com/Tanish-0001/AI-Poker-2025.git
