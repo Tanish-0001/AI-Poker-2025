@@ -2,15 +2,15 @@ import os
 import time
 from player import Player, PlayerStatus
 from game import PokerGame, GamePhase
-from baseplayers import InputPlayer, NewPlayer
+from baseplayers import InputPlayer
 
 
-def run_demo_game():
+def run_game():
 
     players = [
-        InputPlayer("Alice", 100),
-        InputPlayer("Bob", 567),
-        InputPlayer("Charlie", 2000),
+        InputPlayer("Alice", 1000),
+        InputPlayer("Bob", 1000),
+        InputPlayer("Charlie", 1000),
         InputPlayer("David", 1000),
     ]
     
@@ -18,7 +18,7 @@ def run_demo_game():
     game = PokerGame(players, big_blind=20)
 
     # Run a few hands
-    for _ in range(3):
+    for _ in range(5):
         game.start_new_hand()
         
         # Main game loop
@@ -48,4 +48,4 @@ def run_demo_game():
 
 
 if __name__ == "__main__":
-    run_demo_game()
+    run_game()
