@@ -9,7 +9,7 @@ class LLMPlayer(Player):
         super().__init__(name, stack)
         self.llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0, google_api_key=api_key)
 
-        template = """You are a professional poker player. You must win both, lot of games and a lot of money, so you must take safe risks,
+        template = """You are a professional poker player. You must win both, lot of games and a lot of money, so you must take safe risks.
                 \nYou will be given the action history and the current poker game state as a sequence of numbers
                 structured as follows.
                 [hole card 1, hole card 2, community card 1, community card 2, community card 3, community card 4, community card 5,
