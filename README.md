@@ -58,5 +58,16 @@ For example, here is a sample game_state:
 ```
 Which means that the player has the cards with index 16 and 7 (which corresponds to the 4 of hearts and 7 of spades), the community cards are all unrevealed, the pot has $20, the current raise is $20 (which includes the blind), the number of players is 4 and they have $1000, $1000, $980, $1000 resepctively, the blind is $20 and the game number is 1.
 
+The action history is a list of tuples consisting of the following data: (phase, name, action, amount). Here is a sample action history:
+```python
+[('pre-flop', 'David', 'call', 20),
+('pre-flop', 'Alice', 'raise', 60),
+('pre-flop', 'Bob', 'fold', 0),
+('pre-flop', 'Charlie', 'fold', 0),
+('pre-flop', 'David', 'call', 40),
+('flop', 'David', 'check', 0),
+('flop', 'Alice', 'check', 0)]
+```
+Note that the action history does not include posting of the blind. The above action history follows a game where Charlie posts a blind of 20, followed by David calling 20, Alice raising to 60, Bob folding, Charlie folding, David calling 40, David checking, Alice checking.
 
 Note: If you find any bugs, please e-mail them to ieee.sb@pilani.bits-pilani.ac.in
