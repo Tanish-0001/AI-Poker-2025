@@ -2,6 +2,9 @@ from card import Suit, Rank, Card
 from player import Player, PlayerAction
 import pandas
 
+"""
+dataset can be found at: https://www.kaggle.com/datasets/hosseinah1/poker-game-dataset
+"""
 
 class StatPlayer(Player):
 
