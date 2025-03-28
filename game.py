@@ -79,8 +79,7 @@ class PokerGame:
         bb_player = self.players[bb_position]
 
         while bb_player.status != PlayerStatus.ACTIVE:
-            #print("test")
-            bb_position = (bb_position + 1) % len(self.players)
+            bb_position = (bb_position + 1) % len(self.players) # go to the next player position
             bb_player = self.players[bb_position]
 
         if bb_player.stack > 0:
