@@ -150,7 +150,7 @@ class PokerGame:
 
     def is_betting_round_complete(self) -> bool:
         for player in self.players:
-            if player.status in [PlayerStatus.FOLDED, PlayerStatus.ALL_IN]:
+            if player.status in [PlayerStatus.FOLDED, PlayerStatus.ALL_IN, PlayerStatus.OUT]:
                 continue
             if player.bet_amount != self.current_bet:
                 return False
@@ -163,7 +163,7 @@ class PokerGame:
             self.direct_showdown()  # go directly to showdown and declare winner
             return
 
-        no_one_active = all([p.status in [PlayerStatus.ALL_IN, PlayerStatus.FOLDED] for p in self.players])
+        no_one_active = all([p.status in [PlayerStatus.ALL_IN, PlayerStatus.FOLDED, PlayerStatus.OUT] for p in self.players])
         if no_one_active:  # all players other than folded players are all-in
             self.all_in_showdown()  # more than one person are all-in and all others are folded
             return
@@ -209,7 +209,7 @@ class PokerGame:
 
     def _showdown(self):
         # Evaluate hands for all players who haven't folded
-        active_players = [p for p in self.players if p.status != PlayerStatus.FOLDED]
+        active_players = [p for p in self.players if p.status not in [PlayerStatus.FOLDED, PlayerStatus.OUT]]
 
         if len(active_players) == 1:
             # Only one player_hand left, they win automatically
