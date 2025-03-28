@@ -40,9 +40,14 @@ class PokerGame:
         self.phase = GamePhase.SETUP
 
         # Reset player_hand statuses
+        num_active = 0
         for i, player in enumerate(self.players):
             player.reset_for_new_hand()
             self.has_played[i] = False if player.status == PlayerStatus.ACTIVE else True
+            num_active += 1 - int(self.has_played[i])
+
+        if num_active <= 1:
+            return False
 
         # Move button to next player_hand
         self.button_position = (self.button_position + 1) % len(self.players)
@@ -60,6 +65,7 @@ class PokerGame:
 
         # Show game state
         self.display_game_state()
+        return True
 
     def _deal_hole_cards(self):
         for player in self.players:
@@ -70,6 +76,10 @@ class PokerGame:
         # Big blind only, no small blind
         bb_position = (self.button_position + 1) % len(self.players)
         bb_player = self.players[bb_position]
+
+        while bb_player.status != PlayerStatus.ACTIVE:
+            bb_position = (self.button_position + 1) % len(self.players)
+            bb_player = self.players[bb_position]
 
         if bb_player.stack > 0:
             action, amount = bb_player.take_action(PlayerAction.BET, self.big_blind)
@@ -165,7 +175,7 @@ class PokerGame:
 
         no_one_active = all([p.status in [PlayerStatus.ALL_IN, PlayerStatus.FOLDED, PlayerStatus.OUT] for p in self.players])
         if no_one_active:  # all players other than folded players are all-in
-            self.all_in_showdown()  # more than one person are all-in and all others are folded
+            self.all_in_showdown()  # one or more than one person is all-in and others are folded/out
             return
 
         for player in self.players:
