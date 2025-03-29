@@ -6,7 +6,7 @@ from baseplayers import InputPlayer
 from StatPlayer import StatPlayer
 
 
-def run_game():
+def run_game(num_hands):
 
     players = [
         StatPlayer("Alice", 1000),
@@ -19,7 +19,7 @@ def run_game():
     game = PokerGame(players, big_blind=20)
 
     # Run several hands
-    for _ in range(2):
+    for _ in range(num_hands):
         game_status = game.start_new_hand()
         if not game_status:
             print(f"Not enough players left in the game... game over.")
@@ -70,7 +70,7 @@ def run_game():
 if __name__ == "__main__":
     with open("logs_1.txt", "w", encoding="utf-8") as f:
         sys.stdout = f
-        run_game()
+        run_game(40)
 
     sys.stdout = sys.__stdout__
     print("Game over.")
