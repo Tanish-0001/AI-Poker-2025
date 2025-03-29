@@ -6,6 +6,7 @@ import pandas
 dataset can be found at: https://www.kaggle.com/datasets/hosseinah1/poker-game-dataset
 """
 
+
 class StatPlayer(Player):
 
     def __init__(self, name, stack):
@@ -38,7 +39,6 @@ class StatPlayer(Player):
             "Score"
         ].mean()
 
-        print(score)
         if score < 0.5:
             return PlayerAction.FOLD, 0
         return PlayerAction.CALL, 0
@@ -49,7 +49,7 @@ class StatPlayer(Player):
 
         suit1, rank1 = self.get_suit_rank(card1)
         suit2, rank2 = self.get_suit_rank(card2)
-
+        call_amount = game_state[8] - self.bet_amount
         best_score = 0
         comm_cards = game_state[2:5]  # first 3 cards are revealed
         for card in comm_cards:
@@ -61,9 +61,8 @@ class StatPlayer(Player):
             ].mean()
             best_score = max(best_score, score)
 
-        print(best_score)
-        if best_score < 0.7:
-            return PlayerAction.FOLD, 0
+        if best_score < 0.8:
+            return (PlayerAction.FOLD, 0) if call_amount else (PlayerAction.CHECK, 0)
         return PlayerAction.CALL, 0
 
     def turn_strategy(self, game_state):
@@ -72,7 +71,7 @@ class StatPlayer(Player):
 
         suit1, rank1 = self.get_suit_rank(card1)
         suit2, rank2 = self.get_suit_rank(card2)
-
+        call_amount = game_state[8] - self.bet_amount
         best_score = 0
         comm_cards = game_state[2:6]  # first 4 cards are revealed
         for i in range(3):
@@ -86,9 +85,8 @@ class StatPlayer(Player):
                 ].mean()
                 best_score = max(best_score, score)
 
-        print(best_score)
         if best_score < 1.0:
-            return PlayerAction.FOLD, 0
+            return (PlayerAction.FOLD, 0) if call_amount else (PlayerAction.CHECK, 0)
         return PlayerAction.CALL, 0
 
     def river_strategy(self, game_state):
@@ -97,7 +95,7 @@ class StatPlayer(Player):
 
         suit1, rank1 = self.get_suit_rank(card1)
         suit2, rank2 = self.get_suit_rank(card2)
-
+        call_amount = game_state[8] - self.bet_amount
         best_score = 0
         comm_cards = game_state[2:7]  # first 4 cards are revealed
         for i in range(3):
@@ -115,9 +113,8 @@ class StatPlayer(Player):
                     ].mean()
                     best_score = max(best_score, score)
 
-        print(best_score)
         if best_score < 1.3:
-            return PlayerAction.FOLD, 0
+            return (PlayerAction.FOLD, 0) if call_amount else (PlayerAction.CHECK, 0)
         return PlayerAction.CALL, 0
 
     @staticmethod

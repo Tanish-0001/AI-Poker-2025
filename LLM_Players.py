@@ -27,11 +27,9 @@ class LLMPlayer(Player):
                 {game_state}
                 \nYou are {name} and you currently have {stack} dollars.
                 \nYou must return the output in the following JSON format:\n
-                [
                 "ACTION": <FOLD/CALL/RAISE>,
                 "AMOUNT": <integer>,
                 "EXPLANATION": <a brief reasoning>
-                ]
                 """
 
         self.prompt = ChatPromptTemplate.from_template(template)
@@ -51,12 +49,14 @@ class LLMPlayer(Player):
             amount = int(amount)
             if action.upper() == 'CALL':
                 return PlayerAction.CALL, call_amount
-            elif action.upper() == 'RAISE' and amount > max(game_state[-2], game_state[8]):
+            elif action.upper() == 'RAISE' and amount > max(game_state[9], game_state[8]):
                 return PlayerAction.RAISE, int(amount)
+            if call_amount == 0:
+                return PlayerAction.CHECK, 0
             return PlayerAction.FOLD, 0
 
         except Exception as e:
-            print(f"Encountered error: {e}")
+            # print(f"Encountered error: {e}")
             return PlayerAction.FOLD, 0
 
     @staticmethod

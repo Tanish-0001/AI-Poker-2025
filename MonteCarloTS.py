@@ -1,6 +1,6 @@
+from player import Player, PlayerAction
 import random
 from itertools import combinations
-import time
 
 
 class HandEval:
@@ -8,7 +8,7 @@ class HandEval:
         self.SUITES = ("d", "c", "h", "s")
         self.CARD_VALUES = {
             "J": 11,
-            "D": 12,
+            "Q": 12,
             "K": 13,
             "A": 14,
             **{str(n): n for n in range(2, 11)},
@@ -35,7 +35,7 @@ class HandEval:
         if normalize:
             self.hand = set(self._normalize_card(card) for card in players_hand)
         else:
-            self.hand = set(player_hand)
+            self.hand = set(players_hand)
         self.deck -= self.hand
 
     def reset_deck(self):
@@ -87,10 +87,14 @@ class HandEval:
         :param num_players: Total number of players (including the user).
         :return: Win percentage.
         """
+        total_positions = self.positions_to_calculate(num_players)
+        if total_positions == 0:
+            return 0  # Avoid division by zero
+
         win = 0
         for table_addition in combinations(self.deck, 5 - len(self.table)):
             full_table = tuple(self.table) + table_addition
-            rest_of_deck = tuple(self.deck - set(table_addition))
+            rest_of_deck = tuple(set(self.deck).difference(set(table_addition)))
 
             our_seven_cards = tuple(sorted(full_table + tuple(self.hand)))
             our_cards_value = self.value_of_best_hand_type_from_seven_cards(
@@ -111,7 +115,7 @@ class HandEval:
                 if all(our_cards_value >= enemy_value for enemy_value in enemy_values):
                     win += 1
 
-        return round(win * 100 / self.positions_to_calculate(num_players), 2)
+        return round(win * 100 / total_positions, 2)
 
     def calculate_pos_monte_carlo(self, num_players=2, samples=2000):
         """
@@ -121,6 +125,7 @@ class HandEval:
         :return: Estimated win percentage.
         """
         exact_simulations = self.positions_to_calculate(num_players)
+        # print("Player", num_players, exact_simulations)
         if exact_simulations <= samples:
             return self.calculate_position(num_players)
 
@@ -333,51 +338,47 @@ class PokerHandEvaluator:
         self.evaluator.reset_deck()
 
 
-if __name__ == "__main__":
+class ProbabilityPlayer(Player):
+    def __init__(self, name, stack):
+        super().__init__(name, stack)
+        self.evaluator = PokerHandEvaluator()
 
-    evaluator = HandEval()
-    total_difference = 0
-    total_time_difference = 0
+    def action(self, game_state: list[int], action_history: list):
+        self.evaluator.reset()
+        # Extract community cards and player's hole cards
+        community_cards = game_state[2:7]
+        player_hole_cards = game_state[0:2]
 
-    for i in range(20):
-        evaluator.reset_deck()
+        # Normalize cards using PokerHandEvaluator
+        self.evaluator.set_table(community_cards)
+        self.evaluator.set_hand(player_hole_cards)
 
-        num_community_cards = random.randint(4, 5)
-        community_cards = random.sample(sorted(evaluator.deck), num_community_cards)
-        evaluator.set_table_as(community_cards, False)
-
-        player_hand = random.sample(sorted(evaluator.deck), 2)
-        evaluator.update_hand(player_hand, False)
-
-        num_players = random.randint(2, 4)
-
-        print(f"Test Case {i + 1}:")
-        print(f"Community Cards: {community_cards}")
-        print(f"Player Hand: {player_hand}")
-        print(f"Number of Players: {num_players}")
-
-        start_time = time.time()
-        exact_result = evaluator.calculate_position(num_players)
-        exact_time = time.time() - start_time
-        print(f"  Exact calculation result: {exact_result}% (Time: {exact_time:.2f}s)")
-
-        start_time = time.time()
-        monte_carlo_result = evaluator.calculate_pos_monte_carlo(
-            num_players, samples=10000
+        # Calculate win probability using Monte Carlo
+        num_players = game_state[11]
+        win_probability = self.evaluator.calculate_monte_carlo(
+            num_players, samples=1000
         )
-        monte_carlo_time = time.time() - start_time
-        print(
-            f"  Monte Carlo estimation result: {monte_carlo_result}% (Time: {monte_carlo_time:.2f}s)"
-        )
+        # print("Win:", sum(community_cards), win_probability)
+        # Adjust probabilities during preflop
+        if sum(community_cards) == 0:  # Preflop phase
+            win_probability += 40  # Boost probability to avoid always folding
 
-        difference = abs(exact_result - monte_carlo_result)
-        total_difference += difference
-        total_time_difference += exact_time - monte_carlo_time
-        print(f"  Difference: {difference:.2f}%\n")
+        # Make a decision based on win probability
+        call_amount = game_state[8] - self.bet_amount
+        if win_probability > 70:  # High probability, raise
+            if self.stack > call_amount + 40:
+                return PlayerAction.RAISE, call_amount + 40
+            return PlayerAction.ALL_IN, self.stack
+        elif win_probability > 20:  # Moderate probability, call
+            if call_amount <= self.stack:
+                return PlayerAction.CALL, call_amount
+            return PlayerAction.ALL_IN, self.stack
+        else:  # Low probability, fold
+            if call_amount == 0:
+                return PlayerAction.CHECK, 0
+            return PlayerAction.FOLD, 0
 
-    average_difference = total_difference / 20
-    average_time_difference = total_time_difference / 20
-    print(f"Average Difference Across All Test Cases: {average_difference:.2f}%")
-    print(
-        f"Average Time Difference Across All Test Cases: {average_time_difference:.2f}%"
-    )
+    def reset_for_new_hand(self):
+        # Reset any ProbabilityPlayer-specific attributes if needed
+        self.evaluator.reset()
+        return super().reset_for_new_hand()
